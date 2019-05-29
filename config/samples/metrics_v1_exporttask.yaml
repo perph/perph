@@ -1,0 +1,7 @@
+apiVersion: metrics.perph.io/v1
+kind: ExportTask
+metadata:
+  name: exporttask-sample
+spec:
+  # Add fields here
+  foo: bar

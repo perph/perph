@@ -1,0 +1,7 @@
+apiVersion: synthetic.perph.io/v1
+kind: Check
+metadata:
+  name: check-sample
+spec:
+  # Add fields here
+  foo: bar

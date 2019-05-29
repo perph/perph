@@ -1,0 +1,23 @@
+# This kustomization.yaml is not intended to be run by itself,
+# since it depends on service name and namespace that are out of this kustomize package.
+# It should be run by config/default
+resources:
+- bases/synthetic.perph.io_checks.yaml
+- bases/synthetic.perph.io_validations.yaml
+- bases/synthetic.perph.io_syntheticruns.yaml
+- bases/synthetic.perph.io_loadtests.yaml
+- bases/metrics.perph.io_exporttasks.yaml
+# +kubebuilder:scaffold:kustomizeresource
+
+patches:
+# patches here are for enabling the conversion webhook for each CRD
+#- patches/webhook_in_checks.yaml
+#- patches/webhook_in_validations.yaml
+#- patches/webhook_in_syntheticruns.yaml
+#- patches/webhook_in_loadtests.yaml
+#- patches/webhook_in_exporttasks.yaml
+# +kubebuilder:scaffold:kustomizepatch
+
+# the following config is for teaching kustomize how to do kustomization for CRDs.
+configurations:
+- kustomizeconfig.yaml

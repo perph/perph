@@ -1,0 +1,7 @@
+apiVersion: synthetic.perph.io/v1
+kind: Validation
+metadata:
+  name: validation-sample
+spec:
+  # Add fields here
+  foo: bar
