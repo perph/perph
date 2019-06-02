@@ -1,0 +1,7 @@
+apiVersion: synthetic.perph.io/v1
+kind: Trigger
+metadata:
+  name: trigger-sample
+spec:
+  # Add fields here
+  foo: bar

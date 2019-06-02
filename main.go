@@ -38,6 +38,7 @@ func init() {
 
 	syntheticv1.AddToScheme(scheme)
 	metricsv1.AddToScheme(scheme)
+	syntheticv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -68,6 +69,14 @@ func main() {
 	}).SetupWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ExportTask")
+		os.Exit(1)
+	}
+	err = (&controllers.PerformanceRunReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("PerformanceRun"),
+	}).SetupWithManager(mgr)
+	if err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "PerformanceRun")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

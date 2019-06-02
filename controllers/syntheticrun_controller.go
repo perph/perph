@@ -19,10 +19,13 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	batch "k8s.io/api/batch/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	syntheticv1 "github.com/perph/perph/api/v1"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // SyntheticRunReconciler reconciles a SyntheticRun object
@@ -46,5 +49,39 @@ func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error
 func (r *SyntheticRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&syntheticv1.SyntheticRun{}).
+		Owns(&batch.Job{}).
+		Watches(&source.Kind{Type: &syntheticv1.Validation{}}, &handler.EnqueueRequestsFromMapFunc{
+			ToRequests: handler.ToRequestsFunc(func(obj handler.MapObject) []ctrl.Request {
+				var runs syntheticv1.SyntheticRun
+				if err := r.List(context.Background(), &runs, client.InNamespace(obj.Meta.GetNamespace()), client.MatchingField(".spec.validationName", obj.Meta.GetName())); err != nil {
+					r.Log.Info("unable to get synthentic run for validation", "validation", obj)
+					return nil
+				}
+
+				res := make([]ctrl.Request, len(runs.Validations))
+				for i, run := range runs.Validations {
+					res[i].Name = run.Name
+					res[i].Namespace = run.Namespace
+				}
+				return res
+			}),
+		}).
+		Watches(&source.Kind{Type: &syntheticv1.Check{}}, &handler.EnqueueRequestForObject{
+			//TODO add
+			ToRequests: handler.ToRequestsFunc(func(obj handler.MapObject) []ctrl.Request {
+				var runs syntheticv1.SyntheticRun
+				if err := r.List(context.Background(), &runs, client.InNamespace(obj.Meta.GetNamespace()), client.MatchingField(".spec.checkName", obj.Meta.GetName())); err != nil {
+					r.Log.Info("unable to get synthentic run for check", "check", obj)
+					return nil
+				}
+
+				res := make([]ctrl.Request, len(runs.Checks))
+				for i, run := range runs.Checks {
+					res[i].Name = run.Name
+					res[i].Namespace = run.Namespace
+				}
+				return res
+			}),
+		}).
 		Complete(r)
 }

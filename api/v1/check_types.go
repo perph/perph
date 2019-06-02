@@ -16,6 +16,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/apimachinery/pkg/apis/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,12 +27,52 @@ import (
 type CheckSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	CheckDefinition   CheckDefinition
+	CheckRequirements CheckRequirements
 }
 
 // CheckStatus defines the observed state of Check
 type CheckStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+}
+
+// CheckDefinition defines the type of endpoint to target and the require configuration
+type CheckDefinition struct {
+	DestinationHostBinding DestinationHostBinding
+}
+
+// CheckRequirements defines the connection and resource requirements of the check
+type CheckRequirements struct {
+	// Define the tls requirements for the check
+	// +optional
+	TLSSpec TLSSpec
+
+	// Define the resources required to complete this check
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
+// TLSSpec defines the TLS config required
+type TLSSpec struct {
+	TlsType TLSType
+	// +optional
+	CACertRef string `json:"cacert,omitempty"`
+	// +optional
+	PrivateKeyRef string `json:"private_key,omitempty"`
+	// +optional
+	CertRef string `json:"cert,omitempty"`
+}
+
+type TLSType int
+
+const (
+	CLIENT = iota
+	MUTUAL
+)
+
+func (TLSType t) String() string {
+	return []string{"CLIENT", "MUTUAL"}[t]
 }
 
 // +kubebuilder:object:root=true
