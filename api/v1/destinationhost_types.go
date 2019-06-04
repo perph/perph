@@ -26,12 +26,19 @@ import (
 type DestinationHostSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	TargetSpec TargetSpec
+
+	// Define the tls requirements for the check
+	// +optional
+	TLSSpec TLSSpec
 }
 
 // DestinationHostStatus defines the observed state of DestinationHost
 type DestinationHostStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
 }
 
 // +kubebuilder:object:root=true
@@ -45,7 +52,48 @@ type DestinationHost struct {
 	Status DestinationHostStatus `json:"status,omitempty"`
 }
 
-type DesinationHostBinding struct {
+// TargetSpec defines the target adrress, methods and protocols to use
+type TargetSpec struct {
+	Address AddressSpec `json:"address"`
+
+	// +optional
+	RESTConfig RESTSpec `json:"restConfig,omitempty"`
+
+	// TODO implement gRPC methods later
+	//GRPCConfig GRPCSpec `json:"grpcConfig,omitempty"`
+}
+
+// RESTSpec defines the configuration options for a REST request
+type RESTSpec struct {
+	Path   string `json:"path"`
+	Method string `json:"method"`
+
+	// +optional
+	QueryParams map[string]string `json:"queryParams,omitempty"`
+
+	// +optional
+	Headers map[string]string `json:"headers,omitempty"`
+
+	// +optional
+	Data []byte `json:"data,omitempty"`
+}
+
+// AddressSpec defines the connection details to dial the target
+type AddressSpec struct {
+	HostName string `json:"hostName"`
+	// +optional
+	Port int `json:"port,omitempty"`
+}
+
+// TLSSpec defines the TLS config required
+type TLSSpec struct {
+	TLSMode TLSType `json:"tlsMode"`
+	// +optional
+	CACertRef string `json:"cacert,omitempty"`
+	// +optional
+	PrivateKeyRef string `json:"privateKey,omitempty"`
+	// +optional
+	CertRef string `json:"cert,omitempty"`
 }
 
 // +kubebuilder:object:root=true

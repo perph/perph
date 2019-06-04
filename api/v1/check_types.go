@@ -16,7 +16,7 @@ limitations under the License.
 package v1
 
 import (
-	corev1 "k8s.io/apimachinery/pkg/apis/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,8 +27,14 @@ import (
 type CheckSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	CheckDefinition   CheckDefinition
-	CheckRequirements CheckRequirements
+
+	DestinationHostBinding DestinationHostBinding `json:"destinationHost,omitempty"`
+
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// +optional
+	Validation ValidationRequirements `json:"validation,omitempty"`
 }
 
 // CheckStatus defines the observed state of Check
@@ -38,30 +44,21 @@ type CheckStatus struct {
 }
 
 // CheckDefinition defines the type of endpoint to target and the require configuration
-type CheckDefinition struct {
-	DestinationHostBinding DestinationHostBinding
+type DestinationHostBinding struct {
+	//TODO add the binding struct
+
 }
 
-// CheckRequirements defines the connection and resource requirements of the check
-type CheckRequirements struct {
-	// Define the tls requirements for the check
-	// +optional
-	TLSSpec TLSSpec
+// ValidationRequirements defines the connection and resource requirements of the check
+type ValidationRequirements struct {
+	// Define the ways to check the response structs or json blobs
+	// look at using https://godoc.org/gopkg.in/go-playground/validator.v9 in the agent
 
-	// Define the resources required to complete this check
 	// +optional
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
-}
+	DirectCompare map[string]interface{} `json:"directCompare,omitempty"`
 
-// TLSSpec defines the TLS config required
-type TLSSpec struct {
-	TlsType TLSType
 	// +optional
-	CACertRef string `json:"cacert,omitempty"`
-	// +optional
-	PrivateKeyRef string `json:"private_key,omitempty"`
-	// +optional
-	CertRef string `json:"cert,omitempty"`
+	RegexCompare map[string]interface{} `json:"regexCompare,omitempty"`
 }
 
 type TLSType int
@@ -71,7 +68,7 @@ const (
 	MUTUAL
 )
 
-func (TLSType t) String() string {
+func (t TLSType) String() string {
 	return []string{"CLIENT", "MUTUAL"}[t]
 }
 

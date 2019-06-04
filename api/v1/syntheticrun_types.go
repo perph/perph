@@ -26,12 +26,48 @@ import (
 type SyntheticRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	DestinationHost DestinationHostRef `json:"destinationHost,omitempty"`
+
+	// +optional
+	Retries int `json:"retries,omitempty"`
+
+	// +optional
+	Check CheckRef `json:"check,omitempty"`
+
+	// TODO complete the metrics export later
+	//MetricsTask MetricsTaskRef
+}
+
+// DestinationHostRef provides a reference to a specific DestinationHost api object
+type DestinationHostRef struct {
+	//TODO add the reference struct details
+}
+
+// CheckRef provides a reference to a specific Check api object
+type CheckRef struct {
+	//TODO add the reference struct details
 }
 
 // SyntheticRunStatus defines the observed state of SyntheticRun
 type SyntheticRunStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status            RunStatus `json:"status,omitempty"`
+	CompletionMessage string    `json:"completionMessage,omitempty"`
+}
+
+type RunStatus int
+
+const (
+	FAILED = iota
+	RETRYING
+	IN_PROGRESS
+	SUCCESS
+)
+
+func (t RunStatus) String() string {
+	return []string{"FAILED", "RETRYING", "IN_PROGRESS", "SUCCESS"}[t]
 }
 
 // +kubebuilder:object:root=true
