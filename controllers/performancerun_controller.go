@@ -22,10 +22,8 @@ import (
 	batch "k8s.io/api/batch/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	syntheticv1 "github.com/perph/perph/api/v1"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 )
 
 // PerformanceRunReconciler reconciles a PerformanceRun object
@@ -50,21 +48,21 @@ func (r *PerformanceRunReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&syntheticv1.PerformanceRun{}).
 		Owns(&batch.Job{}).
-		Watches(&source.Kind{Type: &syntheticv1.LoadTest{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: handler.ToRequestsFunc(func(obj handler.MapObject) []ctrl.Request {
-				var runs syntheticv1.PerformanceRun
-				if err := r.List(context.Background(), &runs, client.InNamespace(obj.Meta.GetNamespace()), client.MatchingField(".spec.loadtestName", obj.Meta.GetName())); err != nil {
-					r.Log.Info("unable to get performance run for loadtest", "loadtest", obj)
-					return nil
-				}
+		// Watches(&source.Kind{Type: &syntheticv1.LoadTest{}}, &handler.EnqueueRequestsFromMapFunc{
+		// 	ToRequests: handler.ToRequestsFunc(func(obj handler.MapObject) []ctrl.Request {
+		// 		var runs syntheticv1.PerformanceRun
+		// 		if err := r.List(context.Background(), &runs, client.InNamespace(obj.Meta.GetNamespace()), client.MatchingField(".spec.loadtestName", obj.Meta.GetName())); err != nil {
+		// 			r.Log.Info("unable to get performance run for loadtest", "loadtest", obj)
+		// 			return nil
+		// 		}
 
-				res := make([]ctrl.Request, len(runs.Validations))
-				for i, run := range runs.Validations {
-					res[i].Name = run.Name
-					res[i].Namespace = run.Namespace
-				}
-				return res
-			}),
-		}).
+		// 		res := make([]ctrl.Request, len(runs.Validations))
+		// 		for i, run := range runs.Validations {
+		// 			res[i].Name = run.Name
+		// 			res[i].Namespace = run.Namespace
+		// 		}
+		// 		return res
+		// 	}),
+		// }).
 		Complete(r)
 }

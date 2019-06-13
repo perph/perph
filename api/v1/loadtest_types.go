@@ -16,6 +16,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,6 +27,38 @@ import (
 type LoadTestSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	RunParameters RunParameters `json:"runParameters"`
+
+	//One of RESTConfig or GRPCConfig must be provided
+	// +optional
+	RESTConfig RESTSpec `json:"restConfig,omitempty"`
+	// +optional
+	GRPCConfig GRPCSpec `json:"grpcConfig,omitempty"`
+
+	// +optional
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+}
+
+//RunParameters defines the length of the load test, the number of concurrent requests and the abort conditions for a test
+type RunParameters struct {
+	Concurrency int `json:"concurrency,omitempty"`
+	// +optional
+	RequestCount int `json:"requestCount,omitempty"`
+	// +optional
+	Duration int `json:"duration,omitempty"`
+	// +optional
+	MaxFailures int `json:"maxFailures,omitempty"`
+	// +optional
+	MaxErrorRate float32 `json:"maxErrorRate,omitempty"`
+}
+
+// LoadTestRef provides a reference to a specific LoadTest api object
+type LoadTestRef struct {
+	Name string `json:"name,omitempty"` //name of the referent http://kubernetes.io/docs/user-guide/identifiers#names
+
+	// +optional
+	APIVersion string `json:"apiVersion,omitempty"`
 }
 
 // LoadTestStatus defines the observed state of LoadTest

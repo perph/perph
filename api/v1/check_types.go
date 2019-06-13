@@ -28,7 +28,11 @@ type CheckSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	DestinationHostBinding DestinationHostBinding `json:"destinationHost,omitempty"`
+	//One of RESTConfig or GRPCConfig must be provided
+	// +optional
+	RESTConfig RESTSpec `json:"restConfig,omitempty"`
+	// +optional
+	GRPCConfig GRPCSpec `json:"grpcConfig,omitempty"`
 
 	// +optional
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
@@ -43,33 +47,24 @@ type CheckStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 }
 
-// CheckDefinition defines the type of endpoint to target and the require configuration
-type DestinationHostBinding struct {
-	//TODO add the binding struct
-
-}
-
 // ValidationRequirements defines the connection and resource requirements of the check
 type ValidationRequirements struct {
 	// Define the ways to check the response structs or json blobs
 	// look at using https://godoc.org/gopkg.in/go-playground/validator.v9 in the agent
 
 	// +optional
-	DirectCompare map[string]interface{} `json:"directCompare,omitempty"`
+	DirectCompare map[string]string `json:"directCompare,omitempty"`
 
 	// +optional
-	RegexCompare map[string]interface{} `json:"regexCompare,omitempty"`
+	RegexCompare map[string]string `json:"regexCompare,omitempty"`
 }
 
-type TLSType int
+// CheckRef provides a reference to a specific Check api object
+type CheckRef struct {
+	Name string `json:"name,omitempty"` //name of the referent http://kubernetes.io/docs/user-guide/identifiers#names
 
-const (
-	CLIENT = iota
-	MUTUAL
-)
-
-func (t TLSType) String() string {
-	return []string{"CLIENT", "MUTUAL"}[t]
+	// +optional
+	APIVersion string `json:"apiVersion,omitempty"`
 }
 
 // +kubebuilder:object:root=true

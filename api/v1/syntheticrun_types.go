@@ -28,12 +28,10 @@ type SyntheticRunSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	DestinationHost DestinationHostRef `json:"destinationHost,omitempty"`
+	Check           CheckRef           `json:"check,omitempty"`
 
 	// +optional
 	Retries int `json:"retries,omitempty"`
-
-	// +optional
-	Check CheckRef `json:"check,omitempty"`
 
 	// TODO complete the metrics export later
 	//MetricsTask MetricsTaskRef
@@ -41,12 +39,10 @@ type SyntheticRunSpec struct {
 
 // DestinationHostRef provides a reference to a specific DestinationHost api object
 type DestinationHostRef struct {
-	//TODO add the reference struct details
-}
+	Name string `json:"name,omitempty"` //name of the referent http://kubernetes.io/docs/user-guide/identifiers#names
 
-// CheckRef provides a reference to a specific Check api object
-type CheckRef struct {
-	//TODO add the reference struct details
+	// +optional
+	APIVersion string `json:"apiVersion,omitempty"`
 }
 
 // SyntheticRunStatus defines the observed state of SyntheticRun

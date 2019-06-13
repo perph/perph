@@ -26,8 +26,7 @@ import (
 type DestinationHostSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	TargetSpec TargetSpec
+	TargetAddress AddressSpec `json:"address"`
 
 	// Define the tls requirements for the check
 	// +optional
@@ -52,32 +51,6 @@ type DestinationHost struct {
 	Status DestinationHostStatus `json:"status,omitempty"`
 }
 
-// TargetSpec defines the target adrress, methods and protocols to use
-type TargetSpec struct {
-	Address AddressSpec `json:"address"`
-
-	// +optional
-	RESTConfig RESTSpec `json:"restConfig,omitempty"`
-
-	// TODO implement gRPC methods later
-	//GRPCConfig GRPCSpec `json:"grpcConfig,omitempty"`
-}
-
-// RESTSpec defines the configuration options for a REST request
-type RESTSpec struct {
-	Path   string `json:"path"`
-	Method string `json:"method"`
-
-	// +optional
-	QueryParams map[string]string `json:"queryParams,omitempty"`
-
-	// +optional
-	Headers map[string]string `json:"headers,omitempty"`
-
-	// +optional
-	Data []byte `json:"data,omitempty"`
-}
-
 // AddressSpec defines the connection details to dial the target
 type AddressSpec struct {
 	HostName string `json:"hostName"`
@@ -94,6 +67,17 @@ type TLSSpec struct {
 	PrivateKeyRef string `json:"privateKey,omitempty"`
 	// +optional
 	CertRef string `json:"cert,omitempty"`
+}
+
+type TLSType int
+
+const (
+	CLIENT = iota
+	MUTUAL
+)
+
+func (t TLSType) String() string {
+	return []string{"CLIENT", "MUTUAL"}[t]
 }
 
 // +kubebuilder:object:root=true

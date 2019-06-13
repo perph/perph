@@ -26,12 +26,19 @@ import (
 type PerformanceRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	DestinationHost DestinationHostRef `json:"destinationHost,omitempty"`
+	LoadTest        LoadTestRef        `json:"loadTest,omitempty"`
+
+	// TODO complete the metrics export later
+	//MetricsTask MetricsTaskRef
 }
 
 // PerformanceRunStatus defines the observed state of PerformanceRun
 type PerformanceRunStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Status             string `json:"status,omitempty"`
+	SCompletionMessage string `json:"completionMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true
