@@ -16,6 +16,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,15 +27,37 @@ import (
 type SyntheticRunSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	// +optional
+	InstanceCount int32 `json:"instanceCount,omitempty"`
+
+	// +kubebuilder:validation:MinLength=0
+	Name string `json:"name"`
+
+	// +kubebuilder:validation:MinLength=0
+	Endpoint string `json:"endpoint"`
+
+	// +kubebuilder:validation:MinLength=0
+	Path string `json:"path"`
+
+	//TODO make this a mutating web hook
+	JobID string `json:"jobID"`
 }
 
 // SyntheticRunStatus defines the observed state of SyntheticRun
 type SyntheticRunStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Agents []corev1.Pod `json:"agents,omitempty"`
+
+	JobID string `json:"jobID"`
+
+	ConfigVersion int32 `json:"configVersion"`
 }
 
 // +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
 // SyntheticRun is the Schema for the syntheticruns API
 type SyntheticRun struct {

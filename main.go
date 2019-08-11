@@ -19,9 +19,9 @@ import (
 	"flag"
 	"os"
 
-	metricsv1 "github.com/perph/perph/api/v1"
-	syntheticv1 "github.com/perph/perph/api/v1"
+	agentv1 "github.com/perph/perph/api/v1"
 	"github.com/perph/perph/controllers"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,8 +36,7 @@ var (
 
 func init() {
 
-	syntheticv1.AddToScheme(scheme)
-	metricsv1.AddToScheme(scheme)
+	agentv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -60,14 +59,6 @@ func main() {
 	}).SetupWithManager(mgr)
 	if err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "SyntheticRun")
-		os.Exit(1)
-	}
-	err = (&controllers.ExportTaskReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("ExportTask"),
-	}).SetupWithManager(mgr)
-	if err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "ExportTask")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

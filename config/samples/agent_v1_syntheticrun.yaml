@@ -1,4 +1,4 @@
-apiVersion: synthetic.perph.io/v1
+apiVersion: agent.perph.io/v1
 kind: SyntheticRun
 metadata:
   name: syntheticrun-sample
