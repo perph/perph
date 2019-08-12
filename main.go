@@ -22,6 +22,8 @@ import (
 	agentv1 "github.com/perph/perph/api/v1"
 	"github.com/perph/perph/controllers"
 
+	apps "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -37,6 +39,8 @@ var (
 func init() {
 
 	agentv1.AddToScheme(scheme)
+	corev1.AddToScheme(scheme)
+	apps.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -53,12 +57,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	err = (&controllers.SyntheticRunReconciler{
+	if err = (&controllers.SyntheticRunReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("SyntheticRun"),
-	}).SetupWithManager(mgr)
-	if err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "SyntheticRun")
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Captain")
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder

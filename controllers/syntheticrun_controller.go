@@ -17,6 +17,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -42,11 +44,13 @@ type SyntheticRunReconciler struct {
 // +kubebuilder:rbac:groups=agent.perph.io,resources=syntheticruns/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=pods/status,verbs=get
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;create;update;watch;list
 
 func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("syntheticrun", req.NamespacedName)
 
+	log.Info("starting reconciliation")
 	//Get Synthetic Runs
 	var synthRun agent.SyntheticRun
 	if err := r.Get(ctx, req.NamespacedName, &synthRun); err != nil {
@@ -60,7 +64,9 @@ func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
 
-	if synthRun.Spec.JobID != synthRun.Spec.JobID {
+	//The synthRun.Spec.JobID will be replaced with a compare of config CRD Spec.JobID version
+	//The config jobID will be added in via mutating admission webhook
+	if synthRun.Spec.JobID != synthRun.Status.JobID {
 		//Get a list of pods
 		var agentInstances corev1.PodList
 		if err := r.List(ctx, &agentInstances, client.InNamespace(req.Namespace), client.MatchingLabels(map[string]string{"perph": "agent", "job": synthRun.Name})); err != nil {
@@ -70,13 +76,21 @@ func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error
 
 		//make an RPC call to configure the agent
 		//TODO add an RPC here
-
+		err := dummyGRPC(synthRun.Spec.JobID)
 		//If error reschedule the attempt in 5 seconds
-		return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+		if err != nil {
+			r.Log.Error(err, "unable to notify agent of updated configuration - retrying in 5 seconds")
+			return ctrl.Result{RequeueAfter: 5 * time.Second}, err
+		}
+
+		synthRun.Status.JobID = synthRun.Spec.JobID
+
+		if err := r.Status().Update(ctx, &synthRun); err != nil {
+			log.Error(err, "unable to update syntheticagent status")
+		}
 
 	}
-
-	//If the config has been updated hit the update endpoint, if failure reschedule after 5 s
+	log.Info("success")
 
 	return ctrl.Result{}, nil
 }
@@ -96,7 +110,7 @@ func (r *SyntheticRunReconciler) deployAgent(ctx context.Context, synthRun *agen
 	}
 
 	//Create deployment
-	depl := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: synthRun.Name + "_deploy", Namespace: synthRun.Namespace}}
+	depl := &apps.Deployment{ObjectMeta: metav1.ObjectMeta{Name: synthRun.Name + "-deploy", Namespace: synthRun.Namespace}}
 	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, depl, func() error {
 		lbs := map[string]string{"perph": "agent", "job": synthRun.Name}
 		depl.Spec.Replicas = &requiredInstances
@@ -129,6 +143,14 @@ func (r *SyntheticRunReconciler) deployAgent(ctx context.Context, synthRun *agen
 		return nil, err
 	}
 	return depl, nil
+}
+
+func dummyGRPC(id string) error {
+	n := rand.Intn(10)
+	if n > 7 {
+		return fmt.Errorf("failed RPC randomly")
+	}
+	return nil
 }
 
 func ignoreNotFound(err error) error {

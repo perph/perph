@@ -3,5 +3,8 @@ kind: SyntheticRun
 metadata:
   name: syntheticrun-sample
 spec:
-  # Add fields here
-  foo: bar
+  instanceCount: 2
+  name: test
+  endpoint: localhost
+  path: /test
+  jobID: a1
