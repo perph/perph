@@ -46,6 +46,8 @@ type SyntheticRunReconciler struct {
 // +kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=pods/status,verbs=get
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;create;update;watch;list
+// +kubebuilder:rbac:groups=core,resources=services,verbs=get;update;watch;list
+// +kubebuilder:rbac:groups=core,resources=endpoints,verbs=get;update;watch;list
 
 func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()

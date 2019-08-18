@@ -54,3 +54,21 @@ rules:
   - update
   - watch
   - list
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - get
+  - update
+  - watch
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - get
+  - update
+  - watch
+  - list
