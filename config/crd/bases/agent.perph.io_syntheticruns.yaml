@@ -387,26 +387,18 @@ spec:
           type: object
         spec:
           properties:
-            endpoint:
+            checkRef:
               minLength: 0
               type: string
             instanceCount:
               format: int32
               type: integer
-            jobID:
-              description: TODO make this a mutating web hook
-              type: string
             name:
-              minLength: 0
-              type: string
-            path:
               minLength: 0
               type: string
           required:
           - name
-          - endpoint
-          - path
-          - jobID
+          - checkRef
           type: object
         status:
           properties:
@@ -5333,10 +5325,7 @@ spec:
             configVersion:
               format: int32
               type: integer
-            jobID:
-              type: string
           required:
-          - jobID
           - configVersion
           type: object
       type: object

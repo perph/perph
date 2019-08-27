@@ -17,17 +17,14 @@ package controllers
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-logr/logr"
 	agent "github.com/perph/perph/api/v1"
-	"github.com/perph/perph/configure"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -62,48 +59,19 @@ func (r *SyntheticRunReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error
 	}
 
 	//Check if a deployment needs creating or updating
+	log.Info("creating deployment for synthetic run agents")
 	if _, err := r.deployAgent(ctx, &synthRun); err != nil {
 		log.Error(err, "unable to create deployment for synthetic run")
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
 
 	//Check if a svc is deployed or create one
-	depl, err := r.deployService(ctx, &synthRun)
+	log.Info("creating svc for synthetic run agents")
+	_, err := r.deployService(ctx, &synthRun)
 	if err != nil {
 		log.Error(err, "unable to create svc for synthetic run")
 		return ctrl.Result{}, ignoreNotFound(err)
 	}
-
-	//The synthRun.Spec.JobID will be replaced with a compare of config CRD Spec.JobID version
-	//The config jobID will be added in via mutating admission webhook
-	if synthRun.Spec.JobID != synthRun.Status.JobID {
-		//Get a list of eps
-		var endpoints corev1.Endpoints
-		if err := r.Get(ctx, types.NamespacedName{Name: depl.ObjectMeta.Name, Namespace: req.Namespace}, &endpoints); err != nil {
-			log.Error(err, "unable to fetch the endpoints for the synthetic run agentss")
-			return ctrl.Result{}, err
-		}
-
-		//make an RPC call to configure the agent
-		addresses := getAddress(endpoints)
-		address := addresses[0] + ":12000"
-		r.Log.Info(address)
-		_, err := configure.ConfigureAgent(address, synthRun.Spec.JobID)
-		// r.Log.Info(jobId, "JOB ID CONFIGURED")
-		//If error reschedule the attempt in 5 seconds
-		if err != nil {
-			r.Log.Error(err, "unable to notify agent of updated configuration - retrying in 5 seconds")
-			return ctrl.Result{RequeueAfter: 5 * time.Second}, err
-		}
-
-		synthRun.Status.JobID = synthRun.Spec.JobID
-
-		if err := r.Status().Update(ctx, &synthRun); err != nil {
-			log.Error(err, "unable to update syntheticagent status")
-		}
-
-	}
-	log.Info("success")
 
 	return ctrl.Result{}, nil
 }
@@ -162,13 +130,13 @@ func (r *SyntheticRunReconciler) deployAgent(ctx context.Context, synthRun *agen
 
 func (r *SyntheticRunReconciler) deployService(ctx context.Context, synthRun *agent.SyntheticRun) (*corev1.Service, error) {
 	//Create deployment
-	svc := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: synthRun.Name + "-svc", Namespace: synthRun.Namespace}}
+	svc := &corev1.Service{ObjectMeta: metav1.ObjectMeta{Name: synthRun.Name, Namespace: synthRun.Namespace}}
 	if _, err := ctrl.CreateOrUpdate(ctx, r.Client, svc, func() error {
 		lbs := map[string]string{"perph": "agent", "job": synthRun.Name}
 		svc.Spec.Selector = lbs
 		svc.Spec.Type = "ClusterIP"
 		svc.Spec.Ports = []corev1.ServicePort{{Name: "agents", Port: 12000, TargetPort: intstr.FromInt(12000)}}
-
+		svc.ObjectMeta.Labels = lbs
 		if err := ctrl.SetControllerReference(synthRun, svc, r.Scheme); err != nil {
 			return err
 		}
@@ -182,16 +150,6 @@ func (r *SyntheticRunReconciler) deployService(ctx context.Context, synthRun *ag
 		return nil, err
 	}
 	return svc, nil
-}
-
-func getAddress(ep corev1.Endpoints) []string {
-	var addresses []string
-	for _, sub := range ep.Subsets {
-		for _, addr := range sub.Addresses {
-			addresses = append(addresses, addr.IP)
-		}
-	}
-	return addresses
 }
 
 func ignoreNotFound(err error) error {

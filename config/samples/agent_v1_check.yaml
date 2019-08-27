@@ -1,8 +1,8 @@
 apiVersion: agent.perph.io/v1
-kind: SyntheticRun
+kind: Check
 metadata:
   name: syntheticrun-sample
 spec:
-  instanceCount: 2
-  name: test
-  checkRef: test
+  endpoint: localhost
+  path: /test
+  jobID: abc

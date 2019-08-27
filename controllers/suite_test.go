@@ -23,7 +23,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	agentv1 "github.com/perph/perph/api/v1"
-
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -59,6 +58,9 @@ var _ = BeforeSuite(func(done Done) {
 	cfg, err := testEnv.Start()
 	Expect(err).ToNot(HaveOccurred())
 	Expect(cfg).ToNot(BeNil())
+
+	err = agentv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = agentv1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())

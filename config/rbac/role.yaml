@@ -9,6 +9,26 @@ rules:
 - apiGroups:
   - agent.perph.io
   resources:
+  - checks
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - agent.perph.io
+  resources:
+  - checks/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - agent.perph.io
+  resources:
   - syntheticruns
   verbs:
   - get
